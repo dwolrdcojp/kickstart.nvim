@@ -696,7 +696,18 @@ require('lazy').setup({
         -- But for many setups, the LSP (`tsserver`) will work just fine
         clangd = {},
         ts_ls = {},
-        zls = {},
+        zls = {
+          capabilities = capabilities,
+          settings = {
+            zls = {
+              enable_autofix = false,
+              enable_snippets = true,
+              enable_argument_placeholders = true,
+              enable_build_on_save = true,
+              build_on_save_step = "check",
+            },
+          },
+        },
         bashls = {
           cmd = { 'bash-language-server', 'start' },
           filetypes = { 'sh', 'bash' },
@@ -920,6 +931,7 @@ require('lazy').setup({
         sources = {
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
+          { name = 'buffer' },
           { name = 'path' },
         },
       }
