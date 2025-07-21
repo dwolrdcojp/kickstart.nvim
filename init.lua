@@ -701,8 +701,6 @@ require('lazy').setup({
           cmd = { 'bash-language-server', 'start' },
           filetypes = { 'sh', 'bash' },
         },
-        shellcheck = {},
-        actionlint = {},
         docker_compose_language_service = {},
         dockerls = {},
         eslint = {
@@ -717,13 +715,8 @@ require('lazy').setup({
             },
           },
         },
-        prettierd = {},
         jsonls = {},
-        jsonlint = {},
-        yamlfix = {},
-        yamllint = {},
         yamlls = {},
-        yamlfmt = {},
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -757,6 +750,8 @@ require('lazy').setup({
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
+        ensure_installed = vim.tbl_keys(servers),
+        automatic_installation = true,
         handlers = {
           function(server_name)
             local server = servers[server_name] or {}
@@ -764,7 +759,10 @@ require('lazy').setup({
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for tsserver)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
+            local lspconfig = require('lspconfig')
+            if lspconfig[server_name] then
+              lspconfig[server_name].setup(server)
+            end
           end,
         },
       }
