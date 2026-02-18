@@ -228,9 +228,7 @@ local function switch_case()
   -- Detect snake_case
   elseif word:find '_[a-z]' then
     -- Convert snake_case to camelCase
-    local camel_case_word = word:gsub('(_)([a-z])', function(_, l)
-      return l:upper()
-    end)
+    local camel_case_word = word:gsub('(_)([a-z])', function(_, l) return l:upper() end)
     vim.api.nvim_buf_set_text(0, line - 1, word_start, line - 1, word_start + #word, { camel_case_word })
   else
     print 'Not a snake_case or camelCase word'
@@ -558,20 +556,19 @@ require('lazy').setup({
       )
 
       -- Shortcut for searching your Neovim configuration files
-      vim.keymap.set('n', '<leader>sn', function()
-        builtin.find_files { cwd = vim.fn.stdpath 'config' }
-      end, { desc = '[S]earch [N]eovim files' })
+      vim.keymap.set('n', '<leader>sn', function() builtin.find_files { cwd = vim.fn.stdpath 'config' } end, { desc = '[S]earch [N]eovim files' })
 
       -- Shortcut for searching your hidden dirs (respects .gitignore)
       -- i.e. .github/workflows will show up
-      vim.keymap.set('n', '<leader>sa', function()
-        builtin.find_files { hidden = true }
-      end, { desc = '[S]earch [A]ll Files' })
+      vim.keymap.set('n', '<leader>sa', function() builtin.find_files { hidden = true } end, { desc = '[S]earch [A]ll Files' })
 
       -- Shortcut for searching your .env files
-      vim.keymap.set('n', '<leader>se', function()
-        builtin.find_files { hidden = true, no_ignore = true, search_file = '.env*' }
-      end, { desc = '[S]earch [E]nv Files' })
+      vim.keymap.set(
+        'n',
+        '<leader>se',
+        function() builtin.find_files { hidden = true, no_ignore = true, search_file = '.env*' } end,
+        { desc = '[S]earch [E]nv Files' }
+      )
     end,
   },
 
@@ -714,7 +711,7 @@ require('lazy').setup({
               enable_snippets = true,
               enable_argument_placeholders = true,
               enable_build_on_save = true,
-              build_on_save_step = "check",
+              build_on_save_step = 'check',
             },
           },
         },
@@ -754,20 +751,20 @@ require('lazy').setup({
         },
       }
 
-      -- Ensure the servers and tools above are installed
-      --
-      -- To check the current status of installed tools and/or manually install
-      -- other tools, you can run
-      --    :Mason
-      --
-      -- You can press `g?` for help in this menu.
       local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, {
-        'lua_ls', -- Lua Language server
-        'stylua', -- Used to format Lua code
-        -- You can add other tools here that you want Mason to install
-      })
-
+      -- Rename lspconfig names to mason package names where they differ
+      local lsp_to_mason = {
+        jsonls = 'json-lsp',
+        ts_ls = 'typescript-language-server',
+        lua_ls = 'lua-language-server',
+        bashls = 'bash-language-server',
+        eslint = 'eslint-lsp',
+        yamlls = 'yaml-language-server',
+        dockerls = 'dockerfile-language-server',
+        docker_compose_language_service = 'docker-compose-language-service',
+      }
+      ensure_installed = vim.tbl_map(function(name) return lsp_to_mason[name] or name end, ensure_installed)
+      vim.list_extend(ensure_installed, { 'stylua' })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       for name, server in pairs(servers) do
@@ -1001,23 +998,20 @@ require('lazy').setup({
 
   { -- Highlight, edit, and navigate code
     'nvim-treesitter/nvim-treesitter',
-    config = function()
-      local filetypes = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'javascript', 'typescript'}
-      require('nvim-treesitter').install(filetypes)
-      vim.api.nvim_create_autocmd('FileType', {
-        pattern = filetypes,
-        callback = function() vim.treesitter.start() end,
-      })
-    end,
+    build = ':TSUpdate',
+    opts = {
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      highlight = { enable = true },
+    },
+    config = function(_, opts) require('nvim-treesitter.configs').setup(opts) end,
   },
+
   -- Markdown Preview Plugin
   {
     'iamcco/markdown-preview.nvim',
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     ft = { 'markdown' },
-    build = function()
-      vim.fn['mkdp#util#install']()
-    end,
+    build = function() vim.fn['mkdp#util#install']() end,
   },
 
   -- The following comments only work if you have downloaded the kickstart repo, not just copy pasted the
